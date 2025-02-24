@@ -109,10 +109,47 @@ fn colorize_array(
 
 //pub fn main() !void {
 //    const allocator = std.heap.page_allocator;
-//    const input = [_][]const u8{"1", "2", "0", "1", "-2", "1"};
-//    const result = try colorize_array(allocator, &input, 0);
-//    defer allocator.free(result);
+//    const input = [_][]const u8{
+//        "2", "1", "0", "1", "2", "-2",
+//        "0", "1", "2", "1", "0", "-2",
+//        "1", "2", "0", "2", "1", "-2",
+//        "1", "0", "2", "0", "1", "-2", "-1",
+//
+//        "0", "1", "2", "1", "0", "-2",
+//        "2", "1", "0", "1", "2", "-2",
+//        "1", "0", "1", "0", "1", "-2",
+//        "1", "2", "0", "2", "1", "-2",  "-1",
+//    };
+//
 //    const cp_out = UTF8ConsoleOutput.init();
 //    defer cp_out.deinit();
-//    try std.io.getStdOut().writer().print("{s}", .{result});
+//
+//    var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
+//    const writer = bw.writer();
+//
+//    var line_count: u8 = 0;
+//    var total_lines: u8 = 0;
+//    for (input) |char| {
+//        if (mem.eql(u8, char, "-2")) {
+//            line_count += 1;
+//            total_lines += 1;
+//        }
+//
+//        const colored = try color_char(allocator, char, 0);
+//        defer allocator.free(colored);
+//        try writer.writeAll(colored);
+//
+//        if (mem.eql(u8, char, "-1")) {
+//            try writer.writeAll("\x1B[K");
+//            if (line_count > 0) {
+//                try writer.print("\x1B[{d}A", .{line_count});
+//                line_count = 0;
+//            }
+//
+//            try bw.flush();
+//            time.sleep(1 * time.ns_per_s);
+//        }
+//    }
+//
+//    try bw.flush();
 //}
