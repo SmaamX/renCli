@@ -1,5 +1,7 @@
 import std/[sequtils, strutils, os, times], illwill, winregistry
 
+# del list is unstable
+
 #terminal.eraseScreen()
 var cust = @["0", "\x1B[30;1m", "\x1B[40;1m", "1", "\x1B[31;1m", "\x1B[41;1m", "2", "\x1B[32;1m", "\x1B[42;1m"]
 var fp = 0
