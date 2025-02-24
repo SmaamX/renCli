@@ -34,7 +34,6 @@ const cust = [_][]const u8{
     "0", "\x1B[30;1m", "\x1B[40;1m",
     "1", "\x1B[31;1m", "\x1B[41;1m",
     "2", "\x1B[32;1m", "\x1B[42;1m",
-    "-", "\n", ""
 };
 
 var fp: i32 = 0;
@@ -110,7 +109,7 @@ fn colorize_array(
 
 //pub fn main() !void {
 //    const allocator = std.heap.page_allocator;
-//    const input = [_][]const u8{"1", "2", "0", "1", "-", "1"};
+//    const input = [_][]const u8{"1", "2", "0", "1", "-2", "1"};
 //    const result = try colorize_array(allocator, &input, 0);
 //    defer allocator.free(result);
 //    const cp_out = UTF8ConsoleOutput.init();
