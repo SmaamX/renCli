@@ -26,10 +26,30 @@ const UTF8ConsoleOutput = struct {
     }
 };
 
-fn buildMatrix(allocator: mem.Allocator, input: []const []const u8) !StringMatrix {
+fn addLists(allocator: mem.Allocator, list1: StringArray, list2: StringArray) !StringArray {
+    var result = StringArray.init(allocator);
+    for (list1.items, list2.items) |a, b| {
+        const num1 = try fmt.parseInt(i32, a, 10);
+        const num2 = try fmt.parseInt(i32, b, 10);
+        try result.append(try fmt.allocPrint(allocator, "{d}", .{num1 + num2}));
+    }
+    return result;
+}
+
+fn delLists(allocator: mem.Allocator, list1: StringArray, list2: StringArray) !StringArray {
+    var result = StringArray.init(allocator);
+    for (list1.items, list2.items) |a, b| {
+        const num1 = try fmt.parseInt(i32, a, 10);
+        const num2 = try fmt.parseInt(i32, b, 10);
+        try result.append(try fmt.allocPrint(allocator, "{d}", .{num1 - num2}));
+    }
+    return result;
+}
+
+fn buildMatrix(allocator: mem.Allocator, input: StringArray) !StringMatrix {
     var matrix = StringMatrix.init(allocator);
     var row = StringArray.init(allocator);
-    for (input) |char| {
+    for (input.items) |char| {
         if (mem.eql(u8, char, "-2")) {
             try matrix.append(row);
             row = StringArray.init(allocator);
@@ -86,15 +106,15 @@ fn moveDown(allocator: mem.Allocator, matrix: StringMatrix) !StringMatrix {
     return newMatrix;
 }
 
-fn matrixToArray(allocator: mem.Allocator, matrix: StringMatrix) ![]const []const u8 {
-    var array = ArrayList([]const u8).init(allocator);
+fn matrixToArray(allocator: mem.Allocator, matrix: StringMatrix) !StringArray {
+    var array = StringArray.init(allocator);
     for (matrix.items) |row| {
         for (row.items) |item| {
             try array.append(item);
         }
         try array.append("-2");
     }
-    return array.toOwnedSlice();
+    return array;
 }
 
 fn color_char(allocator: mem.Allocator, char: []const u8, shadow: u8) ![]const u8 {
@@ -132,20 +152,35 @@ fn color_char(allocator: mem.Allocator, char: []const u8, shadow: u8) ![]const u
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-    const input = [_][]const u8{
+
+    var input = StringArray.init(allocator);
+    try input.appendSlice(&[_][]const u8{
         "0", "0", "0", "0", "-2",
         "0", "2", "1", "0", "-2",
-        "0", "0", "1", "0", "-2",
-    };
+        "0", "2", "1", "0", "-2",
+    });
 
-    var matrix = try buildMatrix(allocator, &input);
+    var add = StringArray.init(allocator);
+    try add.appendSlice(&[_][]const u8{
+        "0", "0", "0", "0", "0",
+        "0", "0", "0", "0", "0",
+        "0", "1", "2", "0", "0",
+    });
+
+    defer input.deinit();
+    defer add.deinit();
+
+    var matrix = try buildMatrix(allocator, input);
     defer matrix.deinit();
 
     var movedDown = try moveDown(allocator, matrix);
     defer movedDown.deinit();
 
-    const array = try matrixToArray(allocator, movedDown);
-    defer allocator.free(array);
+    var array = try matrixToArray(allocator, movedDown);
+    defer array.deinit();
+
+    var addedArray = try addLists(allocator, array, add);
+    defer addedArray.deinit();
 
     const cp_out = UTF8ConsoleOutput.init();
     defer cp_out.deinit();
@@ -153,7 +188,7 @@ pub fn main() !void {
     var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
     const writer = bw.writer();
 
-    for (array) |char| {
+    for (addedArray.items) |char| {
         const colored = try color_char(allocator, char, 0);
         defer allocator.free(colored);
         try writer.writeAll(colored);
